@@ -23,7 +23,7 @@
 
 Metoda pozwala na ciągłe skanowanie urządzeń nawet przy wyłączonym wyświetlaczu. Wymagane jest podanie identyfikatora/ów producenta/ów.
 
-    ble.startScanWithOptionsWithId(manufactureId, options, success, failure);
+    ble.startScanWithOptionsWithId([id], options, success, failure);
 
 ### Description
 
@@ -50,7 +50,7 @@ See the [location permission notes](#location-permission-notes) above for inform
 
 ### Quick Example
 
-    ble.startScanWithOptionsWithId("00C7",
+    ble.startScanWithOptionsWithId(["00C7"],
         { reportDuplicates: true }
         function(device) {
             console.log(JSON.stringify(device));
