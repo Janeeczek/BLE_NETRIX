@@ -27,7 +27,7 @@ Metoda pozwala na ciągłe skanowanie urządzeń nawet przy wyłączonym wyświe
 
 ### Description
 
-Function `startScanWithOptionsWithId` scans for BLE devices. It operates similarly to the `startScan` function, but allows you to specify extra options (like allowing duplicate device reports).  The success callback is called each time a peripheral is discovered. Scanning will continue until `stopScan` is called.
+Funckja `startScanWithOptionsWithId` skanuje urządzenia bluetooth. Działa podobnie jak `startScan`, jednakże do swojego działania potrzebuje parametru "id" który przyjmuje postać liczby HEX np: 004D. W trakcie wywołania, plugin tworzy foreground service z widocznym powiadomieniem sygnalizującym pracę usługi. Po wywołaniu metody `stopScan`, usługa zostaje wyłączona.
 
     {
         "name": "TI SensorTag",
