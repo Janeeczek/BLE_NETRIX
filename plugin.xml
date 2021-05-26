@@ -86,7 +86,7 @@
             target-dir="src/com/megster/cordova/ble/central"/>
 		<source-file src="src/android/ForegroundService.java"
             target-dir="src/com/megster/cordova/ble/central"/>
-		<framework src="com.android.support:support-compat:28.0.0" />	
+
 
     </platform>
 

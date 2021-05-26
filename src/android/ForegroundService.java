@@ -1,12 +1,10 @@
 package com.megster.cordova.ble.central;
 
-import android.Manifest;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
@@ -18,18 +16,14 @@ import android.os.Binder;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.ParcelUuid;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.content.ContextCompat;
-import com.example.test.R;
+
+import androidx.core.app.NotificationCompat;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.LOG;
-import org.apache.cordova.PermissionHelper;
 import org.apache.cordova.PluginResult;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -82,7 +76,7 @@ public class ForegroundService extends Service {
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Aktywna usługa Foreground")
                 .setContentText("test")
-                .setSmallIcon(R.drawable.screen)
+                .setSmallIcon(getApplicationInfo().icon)
                 .setContentIntent(pendingIntent)
                 .build();
         startForeground(1, notification);

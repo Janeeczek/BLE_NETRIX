@@ -41,8 +41,9 @@ import android.os.Handler;
 import android.os.Build;
 
 import android.provider.Settings;
-import android.support.v4.content.ContextCompat;
-//import android.support.v4.content.ContextCompat;
+
+
+import androidx.core.content.ContextCompat;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaArgs;
@@ -69,9 +70,9 @@ public class BLECentralPlugin extends CordovaPlugin {
     private static final String START_SCAN = "startScan";
     private static final String STOP_SCAN = "stopScan";
     private static final String START_SCAN_WITH_OPTIONS = "startScanWithOptions";
-	private static final String START_SCAN_WITH_OPTIONS_WITH_ID = "startScanWithOptionsWithIds";
-	
-	
+    private static final String START_SCAN_WITH_OPTIONS_WITH_ID = "startScanWithOptionsWithIds";
+
+
     private static final String BONDED_DEVICES = "bondedDevices";
     private static final String LIST = "list";
 
@@ -759,8 +760,8 @@ public class BLECentralPlugin extends CordovaPlugin {
         public void onScanFailed(int errorCode) {
             super.onScanFailed(errorCode);
         }
-        };
-        private ServiceConnection connection = new ServiceConnection() {
+    };
+    private ServiceConnection connection = new ServiceConnection() {
 
         @Override
         public void onServiceConnected(ComponentName className,
@@ -875,7 +876,7 @@ public class BLECentralPlugin extends CordovaPlugin {
         result.setKeepCallback(true);
         callbackContext.sendPluginResult(result);
     }
-	private void findLowEnergyDevicesWithId(CallbackContext callbackContext, String[] manufactureIds, int scanSeconds) {
+    private void findLowEnergyDevicesWithId(CallbackContext callbackContext, String[] manufactureIds, int scanSeconds) {
         LOG.w(TAG, "findLowEnergyDevices");
         mojCall = callbackContext;
         Intent intent = new Intent(cordova.getContext(), ForegroundService.class);
@@ -931,97 +932,8 @@ public class BLECentralPlugin extends CordovaPlugin {
         discoverCallback = callbackContext;
         bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
 
-        //mService.bluetoothLeScanner = bluetoothLeScanner;
-        //mService.discoverCallback = discoverCallback;
-
-        //mService.peripherals = peripherals;
-        // mService.reportDuplicates = reportDuplicates;
-        // mService.scanSeconds = scanSeconds;
-        // mService.serviceUUIDs = serviceUUIDs;
         Intent intenti = new Intent(cordova.getContext(), ForegroundService.class);
         ContextCompat.startForegroundService(cordova.getContext(), intenti);
-
-    /*
-
-
-        if (!locationServicesEnabled()) {
-            LOG.w(TAG, "Location Services are disabled");
-        }
-
-        if (Build.VERSION.SDK_INT >= 29) {                                  // (API 29) Build.VERSION_CODES.Q
-            if (!PermissionHelper.hasPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
-                permissionCallback = callbackContext;
-                this.serviceUUIDs = serviceUUIDs;
-                this.scanSeconds = scanSeconds;
-
-                String[] permissions = {
-                        Manifest.permission.ACCESS_FINE_LOCATION,
-                        "android.permission.ACCESS_BACKGROUND_LOCATION"     // (API 29) Manifest.permission.ACCESS_BACKGROUND_LOCATION
-                };
-
-                PermissionHelper.requestPermissions(this, REQUEST_ACCESS_LOCATION, permissions);
-                return;
-            }
-        } else {
-            if(!PermissionHelper.hasPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)) {
-                // save info so we can call this method again after permissions are granted
-                permissionCallback = callbackContext;
-                this.serviceUUIDs = serviceUUIDs;
-                this.scanSeconds = scanSeconds;
-                PermissionHelper.requestPermission(this, REQUEST_ACCESS_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION);
-                return;
-            }
-        }
-
-
-        // return error if already scanning
-        if (bluetoothAdapter.isDiscovering()) {
-            LOG.w(TAG, "Tried to start scan while already running.");
-            callbackContext.error("Tried to start scan while already running.");
-            return;
-        }
-
-        // clear non-connected cached peripherals
-        for(Iterator<Map.Entry<String, Peripheral>> iterator = peripherals.entrySet().iterator(); iterator.hasNext(); ) {
-            Map.Entry<String, Peripheral> entry = iterator.next();
-            Peripheral device = entry.getValue();
-            boolean connecting = device.isConnecting();
-            if (connecting){
-                LOG.d(TAG, "Not removing connecting device: " + device.getDevice().getAddress());
-            }
-            if(!entry.getValue().isConnected() && !connecting) {
-                iterator.remove();
-            }
-        }
-
-        discoverCallback = callbackContext;
-        bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
-        if (manufactureIds != null && manufactureIds.length > 0) {
-            List<ScanFilter> filters = new ArrayList<ScanFilter>();
-            for (String manufactureId : manufactureIds) {
-
-                ScanFilter filter = new ScanFilter.Builder().setManufacturerData(Integer.parseInt( manufactureId, 16 ), new byte[] {}).build();
-                filters.add(filter);
-            }
-            ScanSettings settings = new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build();
-            bluetoothLeScanner.startScan(filters, settings, leScanCallback);
-        } else {
-            //bluetoothLeScanner.startScan(leScanCallback);
-        }
-
-        if (scanSeconds > 0) {
-            Handler handler = new Handler();
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    LOG.d(TAG, "Stopping Scan");
-                    bluetoothLeScanner.stopScan(leScanCallback);
-                }
-            }, scanSeconds * 1000);
-        }
-
-
-     */
         PluginResult result = new PluginResult(PluginResult.Status.NO_RESULT);
         result.setKeepCallback(true);
         callbackContext.sendPluginResult(result);
