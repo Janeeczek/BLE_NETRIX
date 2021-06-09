@@ -101,7 +101,7 @@ public class BLECentralPlugin extends CordovaPlugin {
 
     private static final String IS_ENABLED = "isEnabled";
     private static final String IS_LOCATION_ENABLED = "isLocationEnabled";
-    private static final String IS_CONNECTED  = "isConnected";
+    private static final String IS_CONNECTED = "isConnected";
 
     private static final String SETTINGS = "showBluetoothSettings";
     private static final String ENABLE = "enable";
@@ -390,7 +390,7 @@ public class BLECentralPlugin extends CordovaPlugin {
 
     private void getBondedDevices(CallbackContext callbackContext) {
         JSONArray bonded = new JSONArray();
-        Set<BluetoothDevice> bondedDevices =  bluetoothAdapter.getBondedDevices();
+        Set<BluetoothDevice> bondedDevices = bluetoothAdapter.getBondedDevices();
 
         for (BluetoothDevice device : bondedDevices) {
             device.getBondState();
@@ -409,7 +409,7 @@ public class BLECentralPlugin extends CordovaPlugin {
     private UUID[] parseServiceUUIDList(JSONArray jsonArray) throws JSONException {
         List<UUID> serviceUUIDs = new ArrayList<UUID>();
 
-        for(int i = 0; i < jsonArray.length(); i++){
+        for (int i = 0; i < jsonArray.length(); i++) {
             String uuidString = jsonArray.getString(i);
             serviceUUIDs.add(uuidFromString(uuidString));
         }
@@ -420,7 +420,7 @@ public class BLECentralPlugin extends CordovaPlugin {
     private String[] parseManufactureIdList(JSONArray jsonArray) throws JSONException {
         List<String> manufactureIds = new ArrayList<String>();
 
-        for(int i = 0; i < jsonArray.length(); i++){
+        for (int i = 0; i < jsonArray.length(); i++) {
             String manufactureIdString = jsonArray.getString(i);
             manufactureIds.add(manufactureIdString);
         }
@@ -533,6 +533,7 @@ public class BLECentralPlugin extends CordovaPlugin {
     }
 
     BroadcastReceiver broadCastReceiver;
+
     private void setPin(CallbackContext callbackContext, final String pin) {
         try {
             if (broadCastReceiver != null) {
@@ -716,7 +717,7 @@ public class BLECentralPlugin extends CordovaPlugin {
     private ScanCallback leScanCallback = new ScanCallback() {
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
-            if(discoverCallback == null) {
+            if (discoverCallback == null) {
                 LOG.w(TAG, "discoverCallback == null");
                 bluetoothLeScanner.stopScan(leScanCallback);
                 Intent serviceIntent = new Intent(cordova.getContext(), ForegroundService.class);
@@ -793,12 +794,13 @@ public class BLECentralPlugin extends CordovaPlugin {
             mBound = false;
         }
     };
+
     private void findLowEnergyDevices(CallbackContext callbackContext, UUID[] serviceUUIDs, int scanSeconds) {
         LOG.w(TAG, "findLowEnergyDevices");
         mojCall = callbackContext;
         is_on_uuid = true;
         Intent intent = new Intent(cordova.getContext(), ForegroundService.class);
-        intent.putExtra(ForegroundService.IS_ON_UUID,is_on_uuid);
+        intent.putExtra(ForegroundService.IS_ON_UUID, is_on_uuid);
         cordova.getActivity().bindService(intent, connection, Context.BIND_AUTO_CREATE);
         if (!locationServicesEnabled()) {
             LOG.w(TAG, "Location Services are disabled");
@@ -817,7 +819,7 @@ public class BLECentralPlugin extends CordovaPlugin {
                 return;
             }
         } else {
-            if(!PermissionHelper.hasPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)) {
+            if (!PermissionHelper.hasPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)) {
                 // save info so we can call this method again after permissions are granted
                 permissionCallback = callbackContext;
                 this.serviceUUIDs = serviceUUIDs;
@@ -836,14 +838,14 @@ public class BLECentralPlugin extends CordovaPlugin {
         }
 
         // clear non-connected cached peripherals
-        for(Iterator<Map.Entry<String, Peripheral>> iterator = peripherals.entrySet().iterator(); iterator.hasNext(); ) {
+        for (Iterator<Map.Entry<String, Peripheral>> iterator = peripherals.entrySet().iterator(); iterator.hasNext(); ) {
             Map.Entry<String, Peripheral> entry = iterator.next();
             Peripheral device = entry.getValue();
             boolean connecting = device.isConnecting();
-            if (connecting){
+            if (connecting) {
                 LOG.d(TAG, "Not removing connecting device: " + device.getDevice().getAddress());
             }
-            if(!entry.getValue().isConnected() && !connecting) {
+            if (!entry.getValue().isConnected() && !connecting) {
                 iterator.remove();
             }
         }
@@ -852,7 +854,7 @@ public class BLECentralPlugin extends CordovaPlugin {
         bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
 
         Intent intenti = new Intent(cordova.getContext(), ForegroundService.class);
-        intenti.putExtra(ForegroundService.IS_ON_UUID,is_on_uuid);
+        intenti.putExtra(ForegroundService.IS_ON_UUID, is_on_uuid);
         ContextCompat.startForegroundService(cordova.getContext(), intenti);
         PluginResult result = new PluginResult(PluginResult.Status.NO_RESULT);
         result.setKeepCallback(true);
@@ -941,12 +943,13 @@ public class BLECentralPlugin extends CordovaPlugin {
 
          */
     }
+
     private void findLowEnergyDevicesWithId(CallbackContext callbackContext, String[] manufactureIds, int scanSeconds) {
         LOG.w(TAG, "findLowEnergyDevices");
         mojCall = callbackContext;
         is_on_uuid = false;
         Intent intent = new Intent(cordova.getContext(), ForegroundService.class);
-        intent.putExtra(ForegroundService.IS_ON_UUID,is_on_uuid);
+        intent.putExtra(ForegroundService.IS_ON_UUID, is_on_uuid);
         cordova.getActivity().bindService(intent, connection, Context.BIND_AUTO_CREATE);
         if (!locationServicesEnabled()) {
             LOG.w(TAG, "Location Services are disabled");
@@ -965,7 +968,7 @@ public class BLECentralPlugin extends CordovaPlugin {
                 return;
             }
         } else {
-            if(!PermissionHelper.hasPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)) {
+            if (!PermissionHelper.hasPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)) {
                 // save info so we can call this method again after permissions are granted
                 permissionCallback = callbackContext;
                 this.manufactureIds = manufactureIds;
@@ -984,14 +987,14 @@ public class BLECentralPlugin extends CordovaPlugin {
         }
 
         // clear non-connected cached peripherals
-        for(Iterator<Map.Entry<String, Peripheral>> iterator = peripherals.entrySet().iterator(); iterator.hasNext(); ) {
+        for (Iterator<Map.Entry<String, Peripheral>> iterator = peripherals.entrySet().iterator(); iterator.hasNext(); ) {
             Map.Entry<String, Peripheral> entry = iterator.next();
             Peripheral device = entry.getValue();
             boolean connecting = device.isConnecting();
-            if (connecting){
+            if (connecting) {
                 LOG.d(TAG, "Not removing connecting device: " + device.getDevice().getAddress());
             }
-            if(!entry.getValue().isConnected() && !connecting) {
+            if (!entry.getValue().isConnected() && !connecting) {
                 iterator.remove();
             }
         }
@@ -1000,7 +1003,7 @@ public class BLECentralPlugin extends CordovaPlugin {
         bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
 
         Intent intenti = new Intent(cordova.getContext(), ForegroundService.class);
-        intenti.putExtra(ForegroundService.IS_ON_UUID,is_on_uuid);
+        intenti.putExtra(ForegroundService.IS_ON_UUID, is_on_uuid);
         ContextCompat.startForegroundService(cordova.getContext(), intenti);
         PluginResult result = new PluginResult(PluginResult.Status.NO_RESULT);
         result.setKeepCallback(true);
@@ -1074,7 +1077,7 @@ public class BLECentralPlugin extends CordovaPlugin {
             }
         }
 
-        switch(requestCode) {
+        switch (requestCode) {
             case REQUEST_ACCESS_LOCATION:
                 LOG.d(TAG, "User granted Location Access");
                 findLowEnergyDevices(permissionCallback, serviceUUIDs, scanSeconds);
@@ -1096,3 +1099,4 @@ public class BLECentralPlugin extends CordovaPlugin {
         this.reportDuplicates = false;
     }
 
+}
