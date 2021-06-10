@@ -35,7 +35,7 @@ public class ForegroundService extends Service {
     private final IBinder binder = new LocalBinder();
     private NotificationManager mNotificationManager;
     public static final String IS_ON_UUID = "is_on_uuid";
-    private boolean is_on_uuid;
+    public boolean is_on_uuid;
     private Notification notification;
     public static final String CHANNEL_ID = "ForegroundServiceChannel";
     public static final String TAG = "BLEPlugin";
@@ -72,7 +72,7 @@ public class ForegroundService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         //Toast.makeText(this, "Usługa się uruchamia", Toast.LENGTH_SHORT).show();
-        is_on_uuid = intent.getBooleanExtra(IS_ON_UUID,true);
+        //is_on_uuid = intent.getBooleanExtra(IS_ON_UUID,true);
         LOG.d(TAG, "onStartCommand");
         createNotificationChannel();
         Intent notificationIntent = new Intent(this, ForegroundService.class);
