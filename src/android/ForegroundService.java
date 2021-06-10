@@ -123,6 +123,8 @@ public class ForegroundService extends Service {
                     ScanFilter filter = new ScanFilter.Builder().setServiceData(new ParcelUuid(uuid),new byte[]{}).build();
                     filters.add(filter);
                 }
+                ScanFilter filtera = new ScanFilter.Builder().setManufacturerData(0xFFFF, new byte[] {}).build();
+                filters.add(filtera);
                 ScanSettings settings = new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build();
                 bluetoothLeScanner.startScan(filters, settings, leScanCallback);
             } else {
