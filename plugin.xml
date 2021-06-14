@@ -49,6 +49,7 @@
     </platform>
 
     <platform name="android">
+        <hook type="after_plugin_install" src="scripts/apply-to-gradle.properties.js" />
         <config-file target="res/xml/config.xml" parent="/widget">
             <feature name="BLE">
                 <param name="android-package" value="com.megster.cordova.ble.central.BLECentralPlugin"/>
@@ -87,7 +88,7 @@
 		<source-file src="src/android/ForegroundService.java"
             target-dir="src/com/megster/cordova/ble/central"/>
 
-
+        <framework src="androidx.core:core:1.0.0" />
     </platform>
 
     <platform name="browser">

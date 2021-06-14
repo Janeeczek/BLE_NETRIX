@@ -32,7 +32,6 @@ import java.util.UUID;
 
 public class ForegroundService extends Service {
 
-    public static final String MANU_ID = "manu_id";
     private final IBinder binder = new LocalBinder();
     private NotificationManager mNotificationManager;
     public static final String IS_ON_UUID = "is_on_uuid";
@@ -73,8 +72,7 @@ public class ForegroundService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         //Toast.makeText(this, "Usługa się uruchamia", Toast.LENGTH_SHORT).show();
-        this.is_on_uuid = intent.getBooleanExtra(IS_ON_UUID,true);
-        this.manufactureIds = intent.getStringArrayExtra(MANU_ID);
+        //is_on_uuid = intent.getBooleanExtra(IS_ON_UUID,true);
         LOG.d(TAG, "onStartCommand");
         createNotificationChannel();
         Intent notificationIntent = new Intent(this, ForegroundService.class);
@@ -82,7 +80,7 @@ public class ForegroundService extends Service {
                 0, notificationIntent, 0);
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Aktywna usługa Foreground")
-                .setContentText("Wyszukiwanie Beaconów")
+                .setContentText("test")
                 .setSmallIcon(getApplicationInfo().icon)
                 .setContentIntent(pendingIntent)
                 .build();
@@ -117,7 +115,6 @@ public class ForegroundService extends Service {
         return notification;
     }
     public void startScanning(){
-        LOG.d(TAG, "IS ON UUID? " + is_on_uuid);
         if(is_on_uuid) {
             if (serviceUUIDs != null && serviceUUIDs.length > 0) {
                 List<ScanFilter> filters = new ArrayList<ScanFilter>();
@@ -126,9 +123,8 @@ public class ForegroundService extends Service {
                     ScanFilter filter = new ScanFilter.Builder().setServiceData(new ParcelUuid(uuid),new byte[]{}).build();
                     filters.add(filter);
                 }
-                ScanFilter filtera = new ScanFilter.Builder().setManufacturerData(65535, new byte[] {}).build();
+                ScanFilter filtera = new ScanFilter.Builder().setManufacturerData(0xFFFF, new byte[] {}).build();
                 filters.add(filtera);
-                LOG.d(TAG, "manufactureIds int : "+ Integer.parseInt( "FFFF", 16 ));
                 ScanSettings settings = new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build();
                 bluetoothLeScanner.startScan(filters, settings, leScanCallback);
             } else {
@@ -149,14 +145,13 @@ public class ForegroundService extends Service {
             if (manufactureIds != null && manufactureIds.length > 0) {
                 List<ScanFilter> filters = new ArrayList<ScanFilter>();
                 for (String manufactureId : manufactureIds) {
-                    LOG.d(TAG, "manufactureIds: "+ manufactureId);
-                    LOG.d(TAG, "manufactureIds int : "+ Integer.parseInt( manufactureId, 16 ));
+
                     ScanFilter filter = new ScanFilter.Builder().setManufacturerData(Integer.parseInt( manufactureId, 16 ), new byte[] {}).build();
                     filters.add(filter);
                 }
                 ScanSettings settings = new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build();
                 bluetoothLeScanner.startScan(filters, settings, leScanCallback);
-
+                LOG.d(TAG, "manufactureIds");
             } else {
                 LOG.d(TAG, "bez");
                 scanSeconds = 1;
