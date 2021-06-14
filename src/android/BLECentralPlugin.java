@@ -803,9 +803,7 @@ public class BLECentralPlugin extends CordovaPlugin {
         this.scanSeconds = scanSeconds;
         mojCall = callbackContext;
         is_on_uuid = true;
-        Intent intent = new Intent(cordova.getContext(), ForegroundService.class);
-        intent.putExtra(ForegroundService.IS_ON_UUID, is_on_uuid);
-        cordova.getActivity().bindService(intent, connection, Context.BIND_AUTO_CREATE);
+
         if (!locationServicesEnabled()) {
             LOG.w(TAG, "Location Services are disabled");
         }
@@ -862,6 +860,9 @@ public class BLECentralPlugin extends CordovaPlugin {
         intenti.putExtra(ForegroundService.IS_ON_UUID, is_on_uuid);
         //intenti.putExtra(ForegroundService.MANU_ID, "FFFF");
         ContextCompat.startForegroundService(cordova.getContext(), intenti);
+        Intent intent = new Intent(cordova.getContext(), ForegroundService.class);
+        intent.putExtra(ForegroundService.IS_ON_UUID, is_on_uuid);
+        cordova.getActivity().bindService(intent, connection, Context.BIND_AUTO_CREATE);
         PluginResult result = new PluginResult(PluginResult.Status.NO_RESULT);
         result.setKeepCallback(true);
         callbackContext.sendPluginResult(result);
@@ -957,9 +958,7 @@ public class BLECentralPlugin extends CordovaPlugin {
         this.scanSeconds = scanSeconds;
         mojCall = callbackContext;
         is_on_uuid = false;
-        Intent intent = new Intent(cordova.getContext(), ForegroundService.class);
-        intent.putExtra(ForegroundService.IS_ON_UUID, is_on_uuid);
-        cordova.getActivity().bindService(intent, connection, Context.BIND_AUTO_CREATE);
+
         if (!locationServicesEnabled()) {
             LOG.w(TAG, "Location Services are disabled");
         }
@@ -1016,6 +1015,9 @@ public class BLECentralPlugin extends CordovaPlugin {
         intenti.putExtra(ForegroundService.IS_ON_UUID, is_on_uuid);
         intenti.putExtra(ForegroundService.MANU_ID, this.manufactureIds);
         ContextCompat.startForegroundService(cordova.getContext(), intenti);
+        Intent intent = new Intent(cordova.getContext(), ForegroundService.class);
+        intent.putExtra(ForegroundService.IS_ON_UUID, is_on_uuid);
+        cordova.getActivity().bindService(intent, connection, Context.BIND_AUTO_CREATE);
         PluginResult result = new PluginResult(PluginResult.Status.NO_RESULT);
         result.setKeepCallback(true);
         callbackContext.sendPluginResult(result);
