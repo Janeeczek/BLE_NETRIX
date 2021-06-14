@@ -798,11 +798,12 @@ public class BLECentralPlugin extends CordovaPlugin {
 
     private void findLowEnergyDevices(CallbackContext callbackContext, UUID[] serviceUUIDs, int scanSeconds) {
         LOG.w(TAG, "findLowEnergyDevices");
+        permissionCallback = callbackContext;
+        this.serviceUUIDs = serviceUUIDs;
+        this.scanSeconds = scanSeconds;
         mojCall = callbackContext;
-        //is_on_uuid = true;
-        Intent intent = new Intent(cordova.getContext(), ForegroundService.class);
-        //intent.putExtra(ForegroundService.IS_ON_UUID, is_on_uuid);
-        cordova.getActivity().bindService(intent, connection, Context.BIND_AUTO_CREATE);
+        is_on_uuid = true;
+
         if (!locationServicesEnabled()) {
             LOG.w(TAG, "Location Services are disabled");
         }
@@ -853,10 +854,15 @@ public class BLECentralPlugin extends CordovaPlugin {
         this.serviceUUIDs = serviceUUIDs;
         discoverCallback = callbackContext;
         bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
-
+        for(UUID s : this.serviceUUIDs)
+            LOG.w(TAG,"M ID w głownym przed wywoaleniem  start foreground "+s);
         Intent intenti = new Intent(cordova.getContext(), ForegroundService.class);
-        //intenti.putExtra(ForegroundService.IS_ON_UUID, is_on_uuid);
+        intenti.putExtra(ForegroundService.IS_ON_UUID, is_on_uuid);
+        //intenti.putExtra(ForegroundService.MANU_ID, "FFFF");
         ContextCompat.startForegroundService(cordova.getContext(), intenti);
+        Intent intent = new Intent(cordova.getContext(), ForegroundService.class);
+        intent.putExtra(ForegroundService.IS_ON_UUID, is_on_uuid);
+        cordova.getActivity().bindService(intent, connection, Context.BIND_AUTO_CREATE);
         PluginResult result = new PluginResult(PluginResult.Status.NO_RESULT);
         result.setKeepCallback(true);
         callbackContext.sendPluginResult(result);
@@ -946,12 +952,13 @@ public class BLECentralPlugin extends CordovaPlugin {
     }
 
     private void findLowEnergyDevicesWithId(CallbackContext callbackContext, String[] manufactureIds, int scanSeconds) {
-        LOG.w(TAG, "findLowEnergyDevices");
+        LOG.w(TAG, "findLowEnergyDevices WITH ID");
+        permissionCallback = callbackContext;
+        this.manufactureIds = manufactureIds;
+        this.scanSeconds = scanSeconds;
         mojCall = callbackContext;
-        //is_on_uuid = false;
-        Intent intent = new Intent(cordova.getContext(), ForegroundService.class);
-        //intent.putExtra(ForegroundService.IS_ON_UUID, is_on_uuid);
-        cordova.getActivity().bindService(intent, connection, Context.BIND_AUTO_CREATE);
+        is_on_uuid = false;
+
         if (!locationServicesEnabled()) {
             LOG.w(TAG, "Location Services are disabled");
         }
@@ -1002,10 +1009,15 @@ public class BLECentralPlugin extends CordovaPlugin {
         this.manufactureIds = manufactureIds;
         discoverCallback = callbackContext;
         bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
-
+        for(String s : this.manufactureIds)
+        LOG.w(TAG,"M ID w głownym przed wywoaleniem  start foreground "+s);
         Intent intenti = new Intent(cordova.getContext(), ForegroundService.class);
-        //intenti.putExtra(ForegroundService.IS_ON_UUID, is_on_uuid);
+        intenti.putExtra(ForegroundService.IS_ON_UUID, is_on_uuid);
+        intenti.putExtra(ForegroundService.MANU_ID, this.manufactureIds);
         ContextCompat.startForegroundService(cordova.getContext(), intenti);
+        Intent intent = new Intent(cordova.getContext(), ForegroundService.class);
+        intent.putExtra(ForegroundService.IS_ON_UUID, is_on_uuid);
+        cordova.getActivity().bindService(intent, connection, Context.BIND_AUTO_CREATE);
         PluginResult result = new PluginResult(PluginResult.Status.NO_RESULT);
         result.setKeepCallback(true);
         callbackContext.sendPluginResult(result);
