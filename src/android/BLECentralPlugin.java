@@ -16,8 +16,6 @@ package com.megster.cordova.ble.central;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
@@ -26,22 +24,16 @@ import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
-import android.bluetooth.le.ScanFilter;
-import android.bluetooth.le.ScanSettings;
-import android.content.ComponentName;
-import android.content.ServiceConnection;
-import android.os.IBinder;
-import android.os.ParcelUuid;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.content.IntentFilter;
-import android.os.Handler;
+import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.os.Build;
-
+import android.os.IBinder;
 import android.provider.Settings;
-
 
 import androidx.core.content.ContextCompat;
 
@@ -52,10 +44,17 @@ import org.apache.cordova.LOG;
 import org.apache.cordova.PermissionHelper;
 import org.apache.cordova.PluginResult;
 import org.json.JSONArray;
-import org.json.JSONObject;
 import org.json.JSONException;
+import org.json.JSONObject;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 import static android.bluetooth.BluetoothDevice.DEVICE_TYPE_DUAL;
 import static android.bluetooth.BluetoothDevice.DEVICE_TYPE_LE;
@@ -151,6 +150,7 @@ public class BLECentralPlugin extends CordovaPlugin {
 
         Intent serviceIntent = new Intent(cordova.getContext(), ForegroundService.class);
         cordova.getContext().stopService(serviceIntent);
+        //cordova.getActivity().
 
         removeStateListener();
     }
@@ -158,6 +158,7 @@ public class BLECentralPlugin extends CordovaPlugin {
     public void onReset() {
         LOG.d(TAG, "ON onReset");
         mService.stopScanning();
+
         bluetoothLeScanner.stopScan(leScanCallback);
         Intent serviceIntent = new Intent(cordova.getContext(), ForegroundService.class);
         cordova.getContext().stopService(serviceIntent);
@@ -168,6 +169,7 @@ public class BLECentralPlugin extends CordovaPlugin {
     public boolean execute(String action, CordovaArgs args, CallbackContext callbackContext) throws JSONException {
         LOG.d(TAG, "action = %s", action);
 
+        //(mReceiver, filter);
         if (bluetoothAdapter == null) {
             Activity activity = cordova.getActivity();
             boolean hardwareSupportsBLE = activity.getApplicationContext()
@@ -200,7 +202,11 @@ public class BLECentralPlugin extends CordovaPlugin {
             findLowEnergyDevices(callbackContext, serviceUUIDs, -1);
 
         } else if (action.equals(STOP_SCAN)) {
-            mService.stopScanning();
+
+            //mService.unbindService(connection);
+
+            cordova.getActivity().unbindService(connection);
+            //mService.unbindService(connection);
             bluetoothLeScanner.stopScan(leScanCallback);
             Intent serviceIntent = new Intent(cordova.getContext(), ForegroundService.class);
             cordova.getContext().stopService(serviceIntent);
@@ -430,15 +436,27 @@ public class BLECentralPlugin extends CordovaPlugin {
 
     private void onBluetoothStateChange(Intent intent) {
         final String action = intent.getAction();
-
+        System.out.println(TAG+ "onBluetoothStateChange: " + action);
         if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
+
             final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
+            if(this.bluetoothStates.get(state).equals("turningOff")) {
+                System.out.println(TAG+ "2222222222222222222222222222222222222222222222222222222222222222222222222 " );
+                //mService.stopScanning();
+                cordova.getActivity().unbindService(connection);
+                //mService.unbindService(connection);
+                bluetoothLeScanner.stopScan(leScanCallback);
+                Intent serviceIntent = new Intent(cordova.getContext(), ForegroundService.class);
+                cordova.getContext().stopService(serviceIntent);
+            }
             sendBluetoothStateChange(state);
         }
     }
 
     private void sendBluetoothStateChange(int state) {
+        System.out.println(TAG+ "sendBluetoothStateChange: " + this.bluetoothStates.get(state));
         if (this.stateCallback != null) {
+
             PluginResult result = new PluginResult(PluginResult.Status.OK, this.bluetoothStates.get(state));
             result.setKeepCallback(true);
             this.stateCallback.sendPluginResult(result);
@@ -446,11 +464,13 @@ public class BLECentralPlugin extends CordovaPlugin {
     }
 
     private void addStateListener() {
+        System.out.println(TAG+ "addStateListener" );
         if (this.stateReceiver == null) {
             this.stateReceiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
                     onBluetoothStateChange(intent);
+                    System.out.println(TAG+ "addStateListener:  onBluetoothStateChange  " );
                 }
             };
         }
@@ -715,6 +735,7 @@ public class BLECentralPlugin extends CordovaPlugin {
     }
 
     private ScanCallback leScanCallback = new ScanCallback() {
+
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
             if (discoverCallback == null) {
@@ -747,6 +768,7 @@ public class BLECentralPlugin extends CordovaPlugin {
                     if (reportDuplicates && discoverCallback != null) {
                         PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, peripheral.asJSONObject());
                         pluginResult.setKeepCallback(true);
+
                         discoverCallback.sendPluginResult(pluginResult);
                     }
                 }
@@ -755,13 +777,17 @@ public class BLECentralPlugin extends CordovaPlugin {
 
         @Override
         public void onBatchScanResults(List<ScanResult> results) {
+            LOG.d(TAG, "onBatchScanResults");
             super.onBatchScanResults(results);
         }
 
         @Override
         public void onScanFailed(int errorCode) {
+
+            LOG.d(TAG, "onScanFailed");
             super.onScanFailed(errorCode);
         }
+
     };
     private ServiceConnection connection = new ServiceConnection() {
 
@@ -1051,7 +1077,7 @@ public class BLECentralPlugin extends CordovaPlugin {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-
+        LOG.d(TAG, "ACTIVIASVFASOFASOFJOSFJAJSOFJJSFJFJFJJFJFJFJFSJFJSJFSJFSJFJSJFSJSFJFSJSFJJFSJFSJJFSJFSJ");
         if (requestCode == REQUEST_ENABLE_BLUETOOTH) {
 
             if (resultCode == Activity.RESULT_OK) {
