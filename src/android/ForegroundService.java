@@ -16,6 +16,7 @@ import android.os.Binder;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.ParcelUuid;
 
 import androidx.core.app.NotificationCompat;
 
@@ -31,8 +32,11 @@ import java.util.UUID;
 
 public class ForegroundService extends Service {
 
+    public static final String MANU_ID = "manu_id";
     private final IBinder binder = new LocalBinder();
     private NotificationManager mNotificationManager;
+    public static final String IS_ON_UUID = "is_on_uuid";
+    public boolean is_on_uuid;
     private Notification notification;
     public static final String CHANNEL_ID = "ForegroundServiceChannel";
     public static final String TAG = "BLEPlugin";
@@ -52,6 +56,7 @@ public class ForegroundService extends Service {
     }
 
 
+
     // scan options
     boolean reportDuplicates = false;
     @Override
@@ -68,6 +73,8 @@ public class ForegroundService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         //Toast.makeText(this, "Usługa się uruchamia", Toast.LENGTH_SHORT).show();
+        this.is_on_uuid = intent.getBooleanExtra(IS_ON_UUID,true);
+        this.manufactureIds = intent.getStringArrayExtra(MANU_ID);
         LOG.d(TAG, "onStartCommand");
         createNotificationChannel();
         Intent notificationIntent = new Intent(this, ForegroundService.class);
@@ -75,7 +82,7 @@ public class ForegroundService extends Service {
                 0, notificationIntent, 0);
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Aktywna usługa Foreground")
-                .setContentText("test")
+                .setContentText("Wyszukiwanie Beaconów")
                 .setSmallIcon(getApplicationInfo().icon)
                 .setContentIntent(pendingIntent)
                 .build();
@@ -110,31 +117,64 @@ public class ForegroundService extends Service {
         return notification;
     }
     public void startScanning(){
-        if (manufactureIds != null && manufactureIds.length > 0) {
-            List<ScanFilter> filters = new ArrayList<ScanFilter>();
-            for (String manufactureId : manufactureIds) {
-
-                ScanFilter filter = new ScanFilter.Builder().setManufacturerData(Integer.parseInt( manufactureId, 16 ), new byte[] {}).build();
-                filters.add(filter);
-            }
-            ScanSettings settings = new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build();
-            bluetoothLeScanner.startScan(filters, settings, leScanCallback);
-            LOG.d(TAG, "manufactureIds");
-        } else {
-            LOG.d(TAG, "bez");
-            //bluetoothLeScanner.startScan(leScanCallback);
-        }
-        LOG.d(TAG, "przed if");
-        if (scanSeconds > 0) {
-            Handler handler = new Handler();
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    LOG.d(TAG, "Stopping Scan");
-                    bluetoothLeScanner.stopScan(leScanCallback);
+        LOG.d(TAG, "IS ON UUID? " + is_on_uuid);
+        if(is_on_uuid) {
+            if (serviceUUIDs != null && serviceUUIDs.length > 0) {
+                List<ScanFilter> filters = new ArrayList<ScanFilter>();
+                for (UUID uuid : serviceUUIDs) {
+                    //ScanFilter filter = new ScanFilter.Builder().setServiceUuid(new ParcelUuid(uuid)).build();
+                    ScanFilter filter = new ScanFilter.Builder().setServiceData(new ParcelUuid(uuid),new byte[]{}).build();
+                    filters.add(filter);
                 }
-            }, scanSeconds * 1000);
+                ScanFilter filtera = new ScanFilter.Builder().setManufacturerData(65535, new byte[] {}).build();
+                filters.add(filtera);
+                LOG.d(TAG, "manufactureIds int : "+ Integer.parseInt( "FFFF", 16 ));
+                ScanSettings settings = new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build();
+                bluetoothLeScanner.startScan(filters, settings, leScanCallback);
+            } else {
+                bluetoothLeScanner.startScan(leScanCallback);
+            }
+
+            if (scanSeconds > 0) {
+                Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        LOG.d(TAG, "Stopping Scan");
+                        bluetoothLeScanner.stopScan(leScanCallback);
+                    }
+                }, scanSeconds * 1000);
+            }
+        }else {
+            if (manufactureIds != null && manufactureIds.length > 0) {
+                List<ScanFilter> filters = new ArrayList<ScanFilter>();
+                for (String manufactureId : manufactureIds) {
+                    LOG.d(TAG, "manufactureIds: "+ manufactureId);
+                    LOG.d(TAG, "manufactureIds int : "+ Integer.parseInt( manufactureId, 16 ));
+                    ScanFilter filter = new ScanFilter.Builder().setManufacturerData(Integer.parseInt( manufactureId, 16 ), new byte[] {}).build();
+                    filters.add(filter);
+                }
+                ScanSettings settings = new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build();
+                bluetoothLeScanner.startScan(filters, settings, leScanCallback);
+
+            } else {
+                LOG.d(TAG, "bez");
+                scanSeconds = 1;
+            }
+            LOG.d(TAG, "przed if");
+            if (scanSeconds > 0) {
+                Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        LOG.d(TAG, "Stopping Scan");
+                        bluetoothLeScanner.stopScan(leScanCallback);
+                    }
+                }, scanSeconds * 1000);
+            }
         }
+
+
     }
     public void stopScanning(){
         stopForeground(true);
