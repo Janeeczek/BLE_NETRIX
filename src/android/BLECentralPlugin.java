@@ -147,7 +147,12 @@ public class BLECentralPlugin extends CordovaPlugin {
     public void onDestroy() {
 
         LOG.d(TAG, "ON DESTROY");
-        bluetoothLeScanner.stopScan(leScanCallback);
+        try {
+            bluetoothLeScanner.stopScan(leScanCallback);
+        } catch (RuntimeException e){
+
+
+        }
         //mService.stopScanning();
 
 
@@ -450,7 +455,13 @@ public class BLECentralPlugin extends CordovaPlugin {
                 //mService.stopScanning();
                 if(mService != null && connection != null)
                 {
-                    bluetoothLeScanner.stopScan(leScanCallback);
+
+                    try {
+                        bluetoothLeScanner.stopScan(leScanCallback);
+                    } catch (RuntimeException e){
+
+
+                    }
                     mService.stopScanning();
                     Intent serviceIntent = new Intent(cordova.getContext(), ForegroundService.class);
                     cordova.getActivity().unbindService(connection);
