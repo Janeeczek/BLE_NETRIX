@@ -65,7 +65,8 @@ public class BLECentralPlugin extends CordovaPlugin {
     CallbackContext mojCall;
     Context context;
     Activity activity;
-
+    public static final String IS_ON_UUID = "is_on_uuid";
+    public static final String MANU_ID = "manu_id";
     // actions
     private static final String SCAN = "scan";
     private static final String START_SCAN = "startScan";
@@ -899,86 +900,16 @@ public class BLECentralPlugin extends CordovaPlugin {
             LOG.w(TAG,"M ID w głownym przed wywoaleniem  start foreground "+s);
         Intent intenti = new Intent(cordova.getContext(), ForegroundService.class);
         intenti.putExtra(ForegroundService.IS_ON_UUID, is_on_uuid);
-        //intenti.putExtra(ForegroundService.MANU_ID, "FFFF");
+        intenti.putExtra(ForegroundService.MANU_ID, new String[]{"FFFF"});
         ContextCompat.startForegroundService(cordova.getContext(), intenti);
         Intent intent = new Intent(cordova.getContext(), ForegroundService.class);
         intent.putExtra(ForegroundService.IS_ON_UUID, is_on_uuid);
+        intent.putExtra(ForegroundService.MANU_ID, new String[]{"FFFF"});
         cordova.getActivity().bindService(intent, connection, Context.BIND_AUTO_CREATE);
         PluginResult result = new PluginResult(PluginResult.Status.NO_RESULT);
         result.setKeepCallback(true);
         callbackContext.sendPluginResult(result);
-        /*
-        if (!locationServicesEnabled()) {
-            LOG.w(TAG, "Location Services are disabled");
-        }
-        if (Build.VERSION.SDK_INT >= 29) {                                  // (API 29) Build.VERSION_CODES.Q
-            if (!PermissionHelper.hasPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
-                permissionCallback = callbackContext;
-                this.serviceUUIDs = serviceUUIDs;
-                this.scanSeconds = scanSeconds;
-                String[] permissions = {
-                        Manifest.permission.ACCESS_FINE_LOCATION,
-                        "android.permission.ACCESS_BACKGROUND_LOCATION"     // (API 29) Manifest.permission.ACCESS_BACKGROUND_LOCATION
-                };
-                PermissionHelper.requestPermissions(this, REQUEST_ACCESS_LOCATION, permissions);
-                return;
-            }
-        } else {
-            if(!PermissionHelper.hasPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)) {
-                // save info so we can call this method again after permissions are granted
-                permissionCallback = callbackContext;
-                this.serviceUUIDs = serviceUUIDs;
-                this.scanSeconds = scanSeconds;
-                PermissionHelper.requestPermission(this, REQUEST_ACCESS_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION);
-                return;
-            }
-        }
-        // return error if already scanning
-        if (bluetoothAdapter.isDiscovering()) {
-            LOG.w(TAG, "Tried to start scan while already running.");
-            callbackContext.error("Tried to start scan while already running.");
-            return;
-        }
-        // clear non-connected cached peripherals
-        for(Iterator<Map.Entry<String, Peripheral>> iterator = peripherals.entrySet().iterator(); iterator.hasNext(); ) {
-            Map.Entry<String, Peripheral> entry = iterator.next();
-            Peripheral device = entry.getValue();
-            boolean connecting = device.isConnecting();
-            if (connecting){
-                LOG.d(TAG, "Not removing connecting device: " + device.getDevice().getAddress());
-            }
-            if(!entry.getValue().isConnected() && !connecting) {
-                iterator.remove();
-            }
-        }
-        discoverCallback = callbackContext;
-        bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
-        if (serviceUUIDs != null && serviceUUIDs.length > 0) {
-            List<ScanFilter> filters = new ArrayList<ScanFilter>();
-            for (UUID uuid : serviceUUIDs) {
-                //ScanFilter filter = new ScanFilter.Builder().setServiceUuid(new ParcelUuid(uuid)).build();
-                ScanFilter filter = new ScanFilter.Builder().setServiceData(new ParcelUuid(uuid),new byte[]{}).build();
-                filters.add(filter);
-            }
-            ScanSettings settings = new ScanSettings.Builder().build();
-            bluetoothLeScanner.startScan(filters, settings, leScanCallback);
-        } else {
-            bluetoothLeScanner.startScan(leScanCallback);
-        }
-        if (scanSeconds > 0) {
-            Handler handler = new Handler();
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    LOG.d(TAG, "Stopping Scan");
-                    bluetoothLeScanner.stopScan(leScanCallback);
-                }
-            }, scanSeconds * 1000);
-        }
-        PluginResult result = new PluginResult(PluginResult.Status.NO_RESULT);
-        result.setKeepCallback(true);
-        callbackContext.sendPluginResult(result);
-         */
+
     }
 
     private void findLowEnergyDevicesWithId(CallbackContext callbackContext, String[] manufactureIds, int scanSeconds) {
@@ -1042,12 +973,14 @@ public class BLECentralPlugin extends CordovaPlugin {
         for(String s : this.manufactureIds)
             LOG.w(TAG,"M ID w głownym przed wywoaleniem  start foreground "+s);
         Intent intenti = new Intent(cordova.getContext(), ForegroundService.class);
-        intenti.putExtra(ForegroundService.IS_ON_UUID, is_on_uuid);
-        intenti.putExtra(ForegroundService.MANU_ID, this.manufactureIds);
+        intenti.putExtra(IS_ON_UUID, is_on_uuid);
+        intenti.putExtra(MANU_ID, manufactureIds);
         ContextCompat.startForegroundService(cordova.getContext(), intenti);
         Intent intent = new Intent(cordova.getContext(), ForegroundService.class);
-        intent.putExtra(ForegroundService.IS_ON_UUID, is_on_uuid);
+        intent.putExtra(IS_ON_UUID, is_on_uuid);
+        intent.putExtra(MANU_ID, manufactureIds);
         cordova.getActivity().bindService(intent, connection, Context.BIND_AUTO_CREATE);
+
         PluginResult result = new PluginResult(PluginResult.Status.NO_RESULT);
         result.setKeepCallback(true);
         callbackContext.sendPluginResult(result);

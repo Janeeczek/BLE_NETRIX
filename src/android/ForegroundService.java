@@ -32,11 +32,11 @@ import java.util.Map;
 import java.util.UUID;
 
 public class ForegroundService extends Service {
-
+    public static final String IS_ON_UUID = "is_on_uuid";
     public static final String MANU_ID = "manu_id";
     private final IBinder binder = new LocalBinder();
     private NotificationManager mNotificationManager;
-    public static final String IS_ON_UUID = "is_on_uuid";
+
     public boolean is_on_uuid;
     public boolean isScanning = false;
     private Notification notification;
@@ -82,10 +82,22 @@ public class ForegroundService extends Service {
     }
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        //Toast.makeText(this, "Usługa się uruchamia", Toast.LENGTH_SHORT).show();
-        this.is_on_uuid = intent.getBooleanExtra(IS_ON_UUID,true);
-        this.manufactureIds = intent.getStringArrayExtra(MANU_ID);
         LOG.d(TAG, "onStartCommand");
+        //Toast.makeText(this, "Usługa się uruchamia", Toast.LENGTH_SHORT).show();
+        if (intent == null) {
+            LOG.d(TAG, "intent null");
+            is_on_uuid = true;
+
+
+        } else {
+            LOG.d(TAG, "intent NIE NULL");
+            is_on_uuid = intent.getBooleanExtra(IS_ON_UUID,true);
+            manufactureIds = intent.getStringArrayExtra(MANU_ID);
+        }
+
+
+
+
         createNotificationChannel();
         Intent notificationIntent = new Intent(this, ForegroundService.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this,
