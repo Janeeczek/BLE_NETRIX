@@ -63,6 +63,8 @@ public class BLECentralPlugin extends CordovaPlugin {
     ForegroundService mService;
     boolean mBound = false;
     CallbackContext mojCall;
+    Context context;
+    Activity activity;
 
     // actions
     private static final String SCAN = "scan";
@@ -145,11 +147,12 @@ public class BLECentralPlugin extends CordovaPlugin {
 
         LOG.d(TAG, "ON DESTROY");
         bluetoothLeScanner.stopScan(leScanCallback);
-        mService.stopScanning();
+        //mService.stopScanning();
 
 
         Intent serviceIntent = new Intent(cordova.getContext(), ForegroundService.class);
-        cordova.getContext().stopService(serviceIntent);
+        activity.unbindService(connection);
+        //context.stopService(serviceIntent);
         //cordova.getActivity().
 
         removeStateListener();
@@ -157,10 +160,8 @@ public class BLECentralPlugin extends CordovaPlugin {
 
     public void onReset() {
         LOG.d(TAG, "ON onReset");
-        mService.stopScanning();
-
-        bluetoothLeScanner.stopScan(leScanCallback);
         Intent serviceIntent = new Intent(cordova.getContext(), ForegroundService.class);
+        cordova.getActivity().unbindService(connection);
         cordova.getContext().stopService(serviceIntent);
         removeStateListener();
     }
@@ -168,7 +169,8 @@ public class BLECentralPlugin extends CordovaPlugin {
     @Override
     public boolean execute(String action, CordovaArgs args, CallbackContext callbackContext) throws JSONException {
         LOG.d(TAG, "action = %s", action);
-
+        context = cordova.getContext();
+        activity = cordova.getActivity();
         //(mReceiver, filter);
         if (bluetoothAdapter == null) {
             Activity activity = cordova.getActivity();
@@ -436,6 +438,8 @@ public class BLECentralPlugin extends CordovaPlugin {
 
     private void onBluetoothStateChange(Intent intent) {
         final String action = intent.getAction();
+        context = cordova.getContext();
+        activity = cordova.getActivity();
         System.out.println(TAG+ "onBluetoothStateChange: " + action);
         if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
 
@@ -443,11 +447,20 @@ public class BLECentralPlugin extends CordovaPlugin {
             if(this.bluetoothStates.get(state).equals("turningOff")) {
                 System.out.println(TAG+ "2222222222222222222222222222222222222222222222222222222222222222222222222 " );
                 //mService.stopScanning();
-                cordova.getActivity().unbindService(connection);
+                if(mService != null && connection != null)
+                {
+                    mService.stopScanning();
+                    Intent serviceIntent = new Intent(cordova.getContext(), ForegroundService.class);
+                    cordova.getActivity().unbindService(connection);
+                    cordova.getContext().stopService(serviceIntent);
+                    connection = null;
+                }
+
+
                 //mService.unbindService(connection);
-                bluetoothLeScanner.stopScan(leScanCallback);
-                Intent serviceIntent = new Intent(cordova.getContext(), ForegroundService.class);
-                cordova.getContext().stopService(serviceIntent);
+                //bluetoothLeScanner.stopScan(leScanCallback);
+
+
             }
             sendBluetoothStateChange(state);
         }
@@ -789,38 +802,7 @@ public class BLECentralPlugin extends CordovaPlugin {
         }
 
     };
-    private ServiceConnection connection = new ServiceConnection() {
-
-        @Override
-        public void onServiceConnected(ComponentName className,
-                                       IBinder service) {
-            LOG.w(TAG, "onServiceConnected");
-            // We've bound to LocalService, cast the IBinder and get LocalService instance
-            ForegroundService.LocalBinder binder = (ForegroundService.LocalBinder) service;
-            mService = binder.getService();
-            mBound = true;
-            discoverCallback = mojCall;
-            bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
-            mService.bluetoothLeScanner = bluetoothLeScanner;
-            mService.discoverCallback = discoverCallback;
-
-            mService.is_on_uuid = is_on_uuid;
-            mService.peripherals = peripherals;
-            mService.reportDuplicates = reportDuplicates;
-            mService.scanSeconds = scanSeconds;
-            mService.serviceUUIDs = serviceUUIDs;
-            mService.manufactureIds = manufactureIds;
-            mService.leScanCallback = leScanCallback;
-            mService.startScanning();
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName arg0) {
-            leScanCallback = null;
-            LOG.w(TAG, "DISCONNECTED");
-            mBound = false;
-        }
-    };
+    private ServiceConnection connection;
 
     private void findLowEnergyDevices(CallbackContext callbackContext, UUID[] serviceUUIDs, int scanSeconds) {
         LOG.w(TAG, "findLowEnergyDevices");
@@ -829,6 +811,39 @@ public class BLECentralPlugin extends CordovaPlugin {
         this.scanSeconds = scanSeconds;
         mojCall = callbackContext;
         is_on_uuid = true;
+        connection  = new ServiceConnection() {
+
+            @Override
+            public void onServiceConnected(ComponentName className,
+                                           IBinder service) {
+                LOG.w(TAG, "onServiceConnected");
+                // We've bound to LocalService, cast the IBinder and get LocalService instance
+                ForegroundService.LocalBinder binder = (ForegroundService.LocalBinder) service;
+                mService = binder.getService();
+                mBound = true;
+                discoverCallback = mojCall;
+                bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
+                mService.bluetoothLeScanner = bluetoothLeScanner;
+                mService.discoverCallback = discoverCallback;
+
+                mService.is_on_uuid = is_on_uuid;
+                mService.peripherals = peripherals;
+                mService.reportDuplicates = reportDuplicates;
+                mService.scanSeconds = scanSeconds;
+                mService.serviceUUIDs = serviceUUIDs;
+                mService.manufactureIds = manufactureIds;
+                mService.leScanCallback = leScanCallback;
+                mService.startScanning();
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName arg0) {
+                leScanCallback = null;
+                LOG.w(TAG, "DISCONNECTED");
+                mBound = false;
+                mService = null;
+            }
+        };
 
         if (!locationServicesEnabled()) {
             LOG.w(TAG, "Location Services are disabled");
@@ -893,22 +908,18 @@ public class BLECentralPlugin extends CordovaPlugin {
         result.setKeepCallback(true);
         callbackContext.sendPluginResult(result);
         /*
-
         if (!locationServicesEnabled()) {
             LOG.w(TAG, "Location Services are disabled");
         }
-
         if (Build.VERSION.SDK_INT >= 29) {                                  // (API 29) Build.VERSION_CODES.Q
             if (!PermissionHelper.hasPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
                 permissionCallback = callbackContext;
                 this.serviceUUIDs = serviceUUIDs;
                 this.scanSeconds = scanSeconds;
-
                 String[] permissions = {
                         Manifest.permission.ACCESS_FINE_LOCATION,
                         "android.permission.ACCESS_BACKGROUND_LOCATION"     // (API 29) Manifest.permission.ACCESS_BACKGROUND_LOCATION
                 };
-
                 PermissionHelper.requestPermissions(this, REQUEST_ACCESS_LOCATION, permissions);
                 return;
             }
@@ -922,15 +933,12 @@ public class BLECentralPlugin extends CordovaPlugin {
                 return;
             }
         }
-
-
         // return error if already scanning
         if (bluetoothAdapter.isDiscovering()) {
             LOG.w(TAG, "Tried to start scan while already running.");
             callbackContext.error("Tried to start scan while already running.");
             return;
         }
-
         // clear non-connected cached peripherals
         for(Iterator<Map.Entry<String, Peripheral>> iterator = peripherals.entrySet().iterator(); iterator.hasNext(); ) {
             Map.Entry<String, Peripheral> entry = iterator.next();
@@ -943,7 +951,6 @@ public class BLECentralPlugin extends CordovaPlugin {
                 iterator.remove();
             }
         }
-
         discoverCallback = callbackContext;
         bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
         if (serviceUUIDs != null && serviceUUIDs.length > 0) {
@@ -958,7 +965,6 @@ public class BLECentralPlugin extends CordovaPlugin {
         } else {
             bluetoothLeScanner.startScan(leScanCallback);
         }
-
         if (scanSeconds > 0) {
             Handler handler = new Handler();
             handler.postDelayed(new Runnable() {
@@ -969,11 +975,9 @@ public class BLECentralPlugin extends CordovaPlugin {
                 }
             }, scanSeconds * 1000);
         }
-
         PluginResult result = new PluginResult(PluginResult.Status.NO_RESULT);
         result.setKeepCallback(true);
         callbackContext.sendPluginResult(result);
-
          */
     }
 
@@ -1036,7 +1040,7 @@ public class BLECentralPlugin extends CordovaPlugin {
         discoverCallback = callbackContext;
         bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
         for(String s : this.manufactureIds)
-        LOG.w(TAG,"M ID w głownym przed wywoaleniem  start foreground "+s);
+            LOG.w(TAG,"M ID w głownym przed wywoaleniem  start foreground "+s);
         Intent intenti = new Intent(cordova.getContext(), ForegroundService.class);
         intenti.putExtra(ForegroundService.IS_ON_UUID, is_on_uuid);
         intenti.putExtra(ForegroundService.MANU_ID, this.manufactureIds);

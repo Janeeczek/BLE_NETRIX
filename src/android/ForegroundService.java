@@ -1,5 +1,6 @@
 package com.megster.cordova.ble.central;
 
+
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -37,6 +38,7 @@ public class ForegroundService extends Service {
     private NotificationManager mNotificationManager;
     public static final String IS_ON_UUID = "is_on_uuid";
     public boolean is_on_uuid;
+    public boolean isScanning = false;
     private Notification notification;
     public static final String CHANNEL_ID = "ForegroundServiceChannel";
     public static final String TAG = "BLEPlugin";
@@ -68,7 +70,15 @@ public class ForegroundService extends Service {
     @Override
     public boolean onUnbind(Intent intent) {
         stopScanning();
+        bounded = false;
         return true;
+    }
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        stopScanning();
+        bounded = false;
+
     }
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -112,6 +122,7 @@ public class ForegroundService extends Service {
     }
     public void startScanning(){
         LOG.d(TAG, "IS ON UUID? " + is_on_uuid);
+        isScanning = true;
         if(is_on_uuid) {
             if (serviceUUIDs != null && serviceUUIDs.length > 0) {
                 List<ScanFilter> filters = new ArrayList<ScanFilter>();
@@ -171,7 +182,11 @@ public class ForegroundService extends Service {
 
     }
     public void stopScanning(){
+        LOG.w(TAG, "stopScanning");
+        isScanning = false;
+        bluetoothLeScanner.stopScan(leScanCallback);
         stopForeground(true);
+
         stopSelf();
     }
 
