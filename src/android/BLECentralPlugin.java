@@ -450,6 +450,7 @@ public class BLECentralPlugin extends CordovaPlugin {
                 //mService.stopScanning();
                 if(mService != null && connection != null)
                 {
+                    bluetoothLeScanner.stopScan(leScanCallback);
                     mService.stopScanning();
                     Intent serviceIntent = new Intent(cordova.getContext(), ForegroundService.class);
                     cordova.getActivity().unbindService(connection);

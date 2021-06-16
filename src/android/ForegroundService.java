@@ -196,7 +196,7 @@ public class ForegroundService extends Service {
     public void stopScanning(){
         LOG.w(TAG, "stopScanning");
         isScanning = false;
-        bluetoothLeScanner.stopScan(leScanCallback);
+        //bluetoothLeScanner.stopScan(leScanCallback);
         stopForeground(true);
 
         stopSelf();
